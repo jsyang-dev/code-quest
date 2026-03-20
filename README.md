@@ -15,7 +15,11 @@ The developer writes all the code. Code Quest provides structure and AI feedback
 ## Install
 
 ```bash
-/install jsyang-dev/code-quest
+# 1. Add marketplace
+/plugin marketplace add jsyang-dev/code-quest
+
+# 2. Install plugin
+/plugin install code-quest@jsyang-dev-code-quest
 ```
 
 ## Usage
