@@ -105,31 +105,32 @@ Create four files in the target repo using `gh api` or GitHub MCP `create_or_upd
 
 ### 3-1. README.md
 
-Generate README.md **entirely in {LOCALE_LANGUAGE}** (except technical terms, code snippets, and table headers which remain in English). Use the following structure as a guide, but translate all human-readable text to {LOCALE_LANGUAGE}:
-
-**README structure** (this is the Korean example — adapt to {LOCALE_LANGUAGE}):
+Generate README.md using the template below. **Translate all human-readable text to {LOCALE_LANGUAGE}** — keep only code snippets, CLI commands, variable names, and the Feature List table headers in English.
 
 ```markdown
 # {TASK} — Code Quest
 
-> {LOCALE_LANGUAGE} description: Learning {LANG}/{FRAMEWORK} through hands-on practice with AI-powered code review.
+> {TRANSLATED: "Learning {LANG}/{FRAMEWORK} through hands-on practice with AI-powered code review."}
 
-## Learning Goal / 학습 목표
+## {TRANSLATED: "Learning Goal"}
 {TASK}
 
 ## Tech Stack
 - Language: {LANG}
 - Framework: {FRAMEWORK}
 
-## How to Proceed / 진행 방법
+## {TRANSLATED: "How to Proceed"}
 
-(Numbered steps explaining the workflow in {LOCALE_LANGUAGE}:
-1. Start from Level 1 in Issues
-2. Create a branch: `git checkout -b feature/level-1-{feature-slug}`
-3. Write the code yourself (AI won't write it for you!)
-4. Create PR with `Closes #1` in the body
-5. Check AI code review, fix if needed, push again
-6. Get APPROVE → merge → move to next Level)
+1. {TRANSLATED: "Start from Issue #1 (Level 1)"}
+2. {TRANSLATED: "Create a branch:"} `git checkout -b feature/level-1-{feature-slug}`
+3. {TRANSLATED: "Write the code yourself (AI won't write it for you!)"}
+4. {TRANSLATED: "Create a PR with"} `Closes #1` {TRANSLATED: "in the body"}
+5. {TRANSLATED: "Check the AI code review, fix if needed, then push again"}
+6. {TRANSLATED: "Get APPROVE → merge → move to the next Level"}
+
+```
+Issue → Branch → Implement → PR (Closes #N) → AI Review → Fix → Re-review → Merge → Next
+```
 
 ## Feature List
 
@@ -137,21 +138,45 @@ Generate README.md **entirely in {LOCALE_LANGUAGE}** (except technical terms, co
 |-------|-------|-------|
 {FEATURE_TABLE_ROWS}
 
-## Cost Info
-(Provider table and cost info — keep numbers/models in English, labels in {LOCALE_LANGUAGE})
+## {TRANSLATED: "Cost Info"}
 
-## Setup
-(Setup instructions in {LOCALE_LANGUAGE} explaining the 3 provider options)
+| {TRANSLATED: "Provider"} | {TRANSLATED: "Default Model"} | {TRANSLATED: "Approx. Cost/PR"} |
+|----------|--------------|-----------------|
+| Anthropic (recommended) | claude-sonnet-4-20250514 | ~$0.01-0.05 |
+| OpenAI | gpt-4o | ~$0.01-0.05 |
+| Google Gemini | gemini-2.0-flash | ~$0.005-0.02 |
 
-## Limitations
-(Limitations in {LOCALE_LANGUAGE})
+- {TRANSLATED: "Monthly estimate (2-3 PRs/day): ~$1-5/month"}
+- {TRANSLATED: "Change model:"} repo `Settings > Variables > Actions` → set `REVIEW_MODEL`
+- {TRANSLATED: "Change review language:"} set `REVIEW_LANG` {TRANSLATED: "variable (default:"} `{LOCALE_LANGUAGE}`{TRANSLATED: ")"}
+
+## {TRANSLATED: "Setup"}
+
+### {TRANSLATED: "Required (choose one provider)"}
+1. GitHub repo `Settings > Secrets and variables > Actions > Secrets`
+2. {TRANSLATED: "`New repository secret` → add **one** of:"}
+   - `ANTHROPIC_API_KEY` — [Anthropic Claude](https://console.anthropic.com) ({TRANSLATED: "recommended"})
+   - `OPENAI_API_KEY` — [OpenAI GPT](https://platform.openai.com/api-keys)
+   - `GEMINI_API_KEY` — [Google Gemini](https://aistudio.google.com/apikey)
+
+{TRANSLATED: "The workflow auto-detects which provider to use based on the available key."}
+
+### {TRANSLATED: "Optional Variables"}
+- `AI_PROVIDER`: {TRANSLATED: "Force a specific provider (`anthropic`, `openai`, `gemini`). Auto-detected if omitted."}
+- `REVIEW_MODEL`: {TRANSLATED: "Model override (default depends on provider)"}
+- `REVIEW_LANG`: {TRANSLATED: "Review language (default:"} `{LOCALE_LANGUAGE}`{TRANSLATED: ")"}
+
+## {TRANSLATED: "Limitations"}
+
+- {TRANSLATED: "**Fork PR not supported**: Only PRs from same-repo branches are reviewed (security restriction)"}
+- {TRANSLATED: "**Diff size limit**: Truncated at 50KB (keep commits small)"}
+- {TRANSLATED: "**Private repo**: GitHub Actions free plan has 2,000 min/month limit"}
 ```
 
-**Key rules**:
-- Section headings: use {LOCALE_LANGUAGE} (e.g., "진행 방법" for Korean, "How to Proceed" for English, "進め方" for Japanese)
-- Code snippets, CLI commands, variable names: always English
-- `REVIEW_LANG` default in the Setup section should show `{LOCALE_LANGUAGE}` (e.g., `Korean`, `English`, `Japanese`)
-- For `{FEATURE_TABLE_ROWS}`, generate a row per feature: `| {level} | {title} | #TBD (will link after issue creation) |`
+**Rules**:
+- `{TRANSLATED: "..."}` → replace with the text translated to {LOCALE_LANGUAGE}
+- Code blocks, CLI commands, variable names, URLs: always keep in English
+- For `{FEATURE_TABLE_ROWS}`: one row per feature `| {level} | {title} | #TBD (will link after issue creation) |`
 
 ### 3-2. GitHub Actions Workflow (.github/workflows/code-quest-review.yml)
 
