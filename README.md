@@ -25,17 +25,42 @@ The developer writes all the code. Code Quest provides structure and AI feedback
 ## Usage
 
 ```
-/code-quest <repo-url> --lang <language> --framework <framework> --task "<task description>"
+/code-quest <repo-url> --lang <language> --framework <framework> --task "<task>" [--locale <locale>]
 ```
+
+### Parameters
+
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `<repo-url>` | ✅ | GitHub repo URL or `owner/repo` |
+| `--lang` | ✅ | Programming language (e.g., `kotlin`, `typescript`, `python`, `go`) |
+| `--framework` | ✅ | Framework (e.g., `spring-boot`, `nestjs`, `fastapi`, `gin`) |
+| `--task` | ✅ | Learning task description |
+| `--locale` | ➖ | Content language. Default: `ko` |
+
+### Locale options
+
+| Locale | Language |
+|--------|----------|
+| `ko` (default) | Korean — 한국어 |
+| `en` | English |
+| `ja` | Japanese — 日本語 |
+| `zh` | Chinese — 中文 |
+| any | Any language name (e.g., `--locale Spanish`) |
+
+Locale affects: README, GitHub Issues, PR template, AI review language.
 
 ### Examples
 
 ```bash
-# Kotlin + Spring Boot board API
-/code-quest https://github.com/user/board-api --lang kotlin --framework spring-boot --task "Build a board CRUD API"
+# Korean (default) — Kotlin + Spring Boot
+/code-quest https://github.com/user/board-api --lang kotlin --framework spring-boot --task "게시판 CRUD API 구현"
 
-# TypeScript + NestJS TODO API
-/code-quest user/my-repo --lang typescript --framework nestjs --task "Build a TODO REST API"
+# English — TypeScript + NestJS
+/code-quest user/my-repo --lang typescript --framework nestjs --task "Build a TODO REST API" --locale en
+
+# Japanese — Go + Gin
+/code-quest user/my-repo --lang go --framework gin --task "REST APIを作成する" --locale ja
 ```
 
 ## Learning Workflow
@@ -47,12 +72,30 @@ Issue -> Branch -> Implement -> PR (Closes #N) -> AI Review -> Fix -> Re-review 
 ## Requirements
 
 - GitHub CLI (`gh`) installed and authenticated
-- Anthropic API key (set as `ANTHROPIC_API_KEY` repo secret)
+- API key for one of the supported AI providers (set as a repo secret)
+
+## AI Provider Support
+
+Code Quest auto-detects which provider to use based on the available secret.
+
+| Provider | Secret Name | Default Model |
+|----------|-------------|---------------|
+| Anthropic Claude (recommended) | `ANTHROPIC_API_KEY` | `claude-sonnet-4-20250514` |
+| OpenAI GPT | `OPENAI_API_KEY` | `gpt-4o` |
+| Google Gemini | `GEMINI_API_KEY` | `gemini-2.0-flash` |
+
+### Optional repo variables
+
+| Variable | Description |
+|----------|-------------|
+| `AI_PROVIDER` | Force a provider: `anthropic`, `openai`, `gemini` |
+| `REVIEW_MODEL` | Override the default model |
+| `REVIEW_LANG` | AI review response language (default: matches `--locale`) |
 
 ## Cost
 
-- ~$0.01-0.05 per PR review (claude-sonnet-4-20250514)
-- Configurable via `CLAUDE_MODEL` repo variable
+- ~$0.01-0.05 per PR review (varies by provider)
+- Use `gemini-2.0-flash` for lowest cost (~$0.005-0.02)
 
 ## License
 
