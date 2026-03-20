@@ -1,5 +1,5 @@
 ---
-name: learn
+name: code-quest
 description: Set up a GitHub repo as a structured learning environment with AI-powered code review on every PR
 ---
 

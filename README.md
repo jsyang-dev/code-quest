@@ -21,17 +21,17 @@ The developer writes all the code. Code Quest provides structure and AI feedback
 ## Usage
 
 ```
-/learn <repo-url> --lang <language> --framework <framework> --task "<task description>"
+/code-quest <repo-url> --lang <language> --framework <framework> --task "<task description>"
 ```
 
 ### Examples
 
 ```bash
 # Kotlin + Spring Boot board API
-/learn https://github.com/user/board-api --lang kotlin --framework spring-boot --task "Build a board CRUD API"
+/code-quest https://github.com/user/board-api --lang kotlin --framework spring-boot --task "Build a board CRUD API"
 
 # TypeScript + NestJS TODO API
-/learn user/my-repo --lang typescript --framework nestjs --task "Build a TODO REST API"
+/code-quest user/my-repo --lang typescript --framework nestjs --task "Build a TODO REST API"
 ```
 
 ## Learning Workflow
