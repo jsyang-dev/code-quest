@@ -37,20 +37,32 @@ The core value is the **PR-based AI review loop**: every time the developer push
 
 Parse parameters from the ARGUMENTS string. Expected format:
 ```
-<repo-url> --lang <language> --framework <framework> --task "<task description>"
+<repo-url> --lang <language> --framework <framework> --task "<task description>" [--locale <locale>]
 ```
 
 Examples:
 - `https://github.com/user/board-api --lang kotlin --framework spring-boot --task "게시판 CRUD API 구현"`
-- `user/my-repo --lang typescript --framework nestjs --task "Build a TODO REST API"`
+- `user/my-repo --lang typescript --framework nestjs --task "Build a TODO REST API" --locale en`
+- `user/my-repo --lang go --framework gin --task "REST API作成" --locale ja`
 
-**Extract these four parameters**:
+**Extract these parameters**:
 - `REPO_URL`: full GitHub repo URL or `owner/repo` shorthand
 - `LANG`: programming language (e.g., kotlin, typescript, python, go)
 - `FRAMEWORK`: framework or library (e.g., spring-boot, nestjs, fastapi, gin)
 - `TASK`: learning task description (what the developer will build)
+- `LOCALE` (optional): content language for README, issues, and guides. Default: `ko`
+  - Supported: `ko` (Korean), `en` (English), `ja` (Japanese), `zh` (Chinese), or any language name/code
 
-If any parameter is missing, use AskUserQuestion to collect it interactively. Collect all missing params before proceeding.
+**Locale determines**:
+- All generated text in README.md, GitHub Issues, PR template, and completion guide
+- The `REVIEW_LANG` default value in the workflow (AI review response language)
+- The analyst agent's output language for feature decomposition
+
+**Locale-to-language mapping** (used for `REVIEW_LANG` default and content generation):
+- `ko` → `Korean`, `en` → `English`, `ja` → `Japanese`, `zh` → `Chinese`
+- Any other value: use as-is (e.g., `--locale Spanish` → `Spanish`)
+
+If any **required** parameter is missing (REPO_URL, LANG, FRAMEWORK, TASK), use AskUserQuestion to collect it interactively. LOCALE defaults to `ko` if omitted.
 
 After collecting params, validate the repo exists:
 ```bash
@@ -67,10 +79,13 @@ Delegate to analyst agent (opus) with the following prompt context:
 > You are decomposing a learning task into 5-10 progressive features for a developer learning {LANG}/{FRAMEWORK}.
 > Task: {TASK}
 >
+> **IMPORTANT: Write ALL text content (title, description, learning_objectives, acceptance_criteria, hints) in {LOCALE_LANGUAGE}.**
+> Only keep technical terms (class names, annotations, API paths, CLI commands) in their original form.
+>
 > Generate features with increasing difficulty (Level 1 = simplest, Level N = most advanced).
 > Each feature must include:
 > - `level`: integer (1 to N)
-> - `title`: short feature name (used as GitHub Issue title suffix)
+> - `title`: short feature name in {LOCALE_LANGUAGE} (used as GitHub Issue title suffix)
 > - `description`: 2-4 sentences explaining what to build
 > - `learning_objectives`: 2-4 bullet points of what the developer will learn
 > - `acceptance_criteria`: 3-5 checkbox items that define "done"
@@ -90,32 +105,31 @@ Create four files in the target repo using `gh api` or GitHub MCP `create_or_upd
 
 ### 3-1. README.md
 
-Generate README.md with this structure (substitute actual values):
+Generate README.md **entirely in {LOCALE_LANGUAGE}** (except technical terms, code snippets, and table headers which remain in English). Use the following structure as a guide, but translate all human-readable text to {LOCALE_LANGUAGE}:
+
+**README structure** (this is the Korean example — adapt to {LOCALE_LANGUAGE}):
 
 ```markdown
 # {TASK} — Code Quest
 
-> Learning {LANG}/{FRAMEWORK} through hands-on practice with AI-powered code review.
+> {LOCALE_LANGUAGE} description: Learning {LANG}/{FRAMEWORK} through hands-on practice with AI-powered code review.
 
-## Learning Goal
+## Learning Goal / 학습 목표
 {TASK}
 
 ## Tech Stack
 - Language: {LANG}
 - Framework: {FRAMEWORK}
 
-## How to Proceed
+## How to Proceed / 진행 방법
 
-1. Issue 목록에서 Level 1부터 시작하세요
-2. 새 브랜치를 생성하세요: `git checkout -b feature/level-1-{feature-slug}`
-3. 코드를 구현하세요 (Claude가 대신 짜주지 않습니다 — 직접 작성하세요!)
-4. PR을 생성하고 본문에 `Closes #1`을 포함하세요
-5. AI 코드 리뷰를 확인하고, 필요하면 수정 후 다시 push하세요
-6. APPROVE를 받으면 merge하고 다음 Level로 이동하세요
-
-```
-Issue → Branch → Implement → PR (Closes #N) → AI Review → Fix → Re-review → Merge → Next
-```
+(Numbered steps explaining the workflow in {LOCALE_LANGUAGE}:
+1. Start from Level 1 in Issues
+2. Create a branch: `git checkout -b feature/level-1-{feature-slug}`
+3. Write the code yourself (AI won't write it for you!)
+4. Create PR with `Closes #1` in the body
+5. Check AI code review, fix if needed, push again
+6. Get APPROVE → merge → move to next Level)
 
 ## Feature List
 
@@ -124,40 +138,20 @@ Issue → Branch → Implement → PR (Closes #N) → AI Review → Fix → Re-r
 {FEATURE_TABLE_ROWS}
 
 ## Cost Info
-
-- Estimated cost per PR: ~$0.01-0.05 (depends on diff size and provider)
-- Monthly estimate (2-3 PRs/day): ~$1-5/month
-- Change model: repo `Settings > Variables > Actions` → set `REVIEW_MODEL`
-- Change review language: set `REVIEW_LANG` variable (default: Korean)
-
-| Provider | Default Model | Approx. Cost/PR |
-|----------|--------------|-----------------|
-| Anthropic (recommended) | claude-sonnet-4-20250514 | ~$0.01-0.05 |
-| OpenAI | gpt-4o | ~$0.01-0.05 |
-| Google Gemini | gemini-2.0-flash | ~$0.005-0.02 |
+(Provider table and cost info — keep numbers/models in English, labels in {LOCALE_LANGUAGE})
 
 ## Setup
-
-### Required (choose one provider)
-1. GitHub repo `Settings > Secrets and variables > Actions > Secrets`
-2. `New repository secret` → add **one** of:
-   - `ANTHROPIC_API_KEY` — Anthropic Claude (recommended)
-   - `OPENAI_API_KEY` — OpenAI GPT
-   - `GEMINI_API_KEY` — Google Gemini
-
-### Optional
-- `AI_PROVIDER` variable: Force a specific provider (`anthropic`, `openai`, `gemini`). Auto-detected if omitted.
-- `REVIEW_MODEL` variable: Model override (default depends on provider)
-- `REVIEW_LANG` variable: Review language (default: `Korean`)
+(Setup instructions in {LOCALE_LANGUAGE} explaining the 3 provider options)
 
 ## Limitations
-
-- **Fork PR not supported**: Only PRs from same-repo branches are reviewed (security restriction)
-- **Diff size limit**: Truncated at 50KB (keep commits small)
-- **Private repo**: GitHub Actions free plan has 2,000 min/month limit
+(Limitations in {LOCALE_LANGUAGE})
 ```
 
-For `{FEATURE_TABLE_ROWS}`, generate a row per feature: `| {level} | {title} | #TBD (will link after issue creation) |`
+**Key rules**:
+- Section headings: use {LOCALE_LANGUAGE} (e.g., "진행 방법" for Korean, "How to Proceed" for English, "進め方" for Japanese)
+- Code snippets, CLI commands, variable names: always English
+- `REVIEW_LANG` default in the Setup section should show `{LOCALE_LANGUAGE}` (e.g., `Korean`, `English`, `Japanese`)
+- For `{FEATURE_TABLE_ROWS}`, generate a row per feature: `| {level} | {title} | #TBD (will link after issue creation) |`
 
 ### 3-2. GitHub Actions Workflow (.github/workflows/code-quest-review.yml)
 
@@ -232,7 +226,7 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           AI_PROVIDER: ${{ vars.AI_PROVIDER || '' }}
           REVIEW_MODEL: ${{ vars.REVIEW_MODEL || '' }}
-          REVIEW_LANG: ${{ vars.REVIEW_LANG || 'Korean' }}
+          REVIEW_LANG: ${{ vars.REVIEW_LANG || 'PLACEHOLDER_REVIEW_LANG' }}
         with:
           script: |
             const fs = require('fs');
@@ -422,68 +416,78 @@ jobs:
             });
 ```
 
-**CRITICAL when generating this file**: Replace `PLACEHOLDER_LANG/PLACEHOLDER_FRAMEWORK` with the actual values, e.g., `"Kotlin/Spring Boot"` or `"TypeScript/NestJS"`. The string must be a JavaScript string literal, not a shell variable.
+**CRITICAL when generating this file**:
+- Replace `PLACEHOLDER_LANG/PLACEHOLDER_FRAMEWORK` with the actual values, e.g., `"Kotlin/Spring Boot"` or `"TypeScript/NestJS"`. The string must be a JavaScript string literal, not a shell variable.
+- Replace `PLACEHOLDER_REVIEW_LANG` with the locale language name, e.g., `Korean`, `English`, `Japanese`. This sets the default AI review language.
 
 ### 3-3. Issue Template (.github/ISSUE_TEMPLATE/code-quest-feature.yml)
 
+Generate with labels/descriptions in {LOCALE_LANGUAGE}:
+
 ```yaml
 name: Code Quest Feature
-description: A learning feature for Code Quest
+description: "{LOCALE: A learning feature for Code Quest}"
 title: "[Level N] Feature Title"
 labels: ["learning", "code-quest"]
 body:
   - type: markdown
     attributes:
       value: |
-        ## Learning Feature
+        ## {LOCALE: Learning Feature}
   - type: textarea
     id: description
     attributes:
-      label: Description
-      description: What to build
+      label: "{LOCALE: Description}"
+      description: "{LOCALE: What to build}"
     validations:
       required: true
   - type: textarea
     id: objectives
     attributes:
-      label: Learning Objectives
-      description: What you will learn
+      label: "{LOCALE: Learning Objectives}"
+      description: "{LOCALE: What you will learn}"
     validations:
       required: true
   - type: textarea
     id: acceptance
     attributes:
-      label: Acceptance Criteria
-      description: Checklist for done
+      label: "{LOCALE: Acceptance Criteria}"
+      description: "{LOCALE: Checklist for done}"
     validations:
       required: true
   - type: textarea
     id: hints
     attributes:
-      label: Hints (optional)
-      description: Tips to help you get started
+      label: "{LOCALE: Hints (optional)}"
+      description: "{LOCALE: Tips to help you get started}"
 ```
+
+**{LOCALE: ...}** means translate the text inside to {LOCALE_LANGUAGE}. For `en`, keep as-is.
 
 ### 3-4. PR Template (.github/PULL_REQUEST_TEMPLATE.md)
 
+Generate in {LOCALE_LANGUAGE}:
+
 ```markdown
-## What I Built
+## {LOCALE: What I Built}
 
-<!-- Briefly describe what you implemented -->
+<!-- {LOCALE: Briefly describe what you implemented} -->
 
-## Closes Issue
+## {LOCALE: Closes Issue}
 
 Closes #
 
-<!-- Replace # with the issue number, e.g. Closes #1 -->
-<!-- This links the PR to the issue and enables AI code review context -->
+<!-- {LOCALE: Replace # with the issue number, e.g. Closes #1} -->
+<!-- {LOCALE: This links the PR to the issue and enables AI code review context} -->
 
-## Self Check
+## {LOCALE: Self Check}
 
-- [ ] All acceptance criteria are met
-- [ ] Tests written (if applicable)
-- [ ] Code written by me (not AI-generated)
+- [ ] {LOCALE: All acceptance criteria are met}
+- [ ] {LOCALE: Tests written (if applicable)}
+- [ ] {LOCALE: Code written by me (not AI-generated)}
 ```
+
+**{LOCALE: ...}** means translate to {LOCALE_LANGUAGE}. Keep `Closes #` as-is (GitHub keyword).
 
 ---
 
@@ -546,8 +550,13 @@ For each feature from Step 2, in order from Level 1 to Level N:
 </details>
 
 ---
-> PR 생성 시 본문에 `Closes #{ISSUE_NUMBER}` 를 포함하면 AI 코드 리뷰가 이 Issue의 요구사항을 참고합니다.
+> {LOCALE: "Include `Closes #{ISSUE_NUMBER}` in your PR body so the AI review can reference this issue's requirements."}
 ```
+
+Translate the footer hint to {LOCALE_LANGUAGE}. Examples:
+- `ko`: "PR 생성 시 본문에 `Closes #{ISSUE_NUMBER}` 를 포함하면 AI 코드 리뷰가 이 Issue의 요구사항을 참고합니다."
+- `en`: "Include `Closes #{ISSUE_NUMBER}` in your PR body so the AI review can reference this issue's requirements."
+- `ja`: "PRの本文に `Closes #{ISSUE_NUMBER}` を含めると、AIコードレビューがこのIssueの要件を参照します。"
 
 Record each created issue number for the README feature table.
 
@@ -559,7 +568,7 @@ After all issues are created, update the feature table in README.md to include a
 
 ## Step 5: Completion Guide
 
-After all steps succeed, output the following guide to the user:
+After all steps succeed, output the following guide to the user **in {LOCALE_LANGUAGE}** (keep URLs, variable names, and CLI commands in English):
 
 ```
 Code Quest setup complete!
@@ -648,7 +657,7 @@ mcp__github-http__create_or_update_file(
 </Escalation_And_Stop_Conditions>
 
 <Final_Checklist>
-- [ ] All 4 parameters collected (repo-url, lang, framework, task)
+- [ ] All parameters collected (repo-url, lang, framework, task, locale defaults to ko)
 - [ ] Repo validated with `gh repo view`
 - [ ] Features decomposed (5-10 items with progressive difficulty)
 - [ ] README.md pushed with feature table and cost info
