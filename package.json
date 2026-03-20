@@ -1,0 +1,25 @@
+{
+  "name": "code-quest",
+  "version": "1.0.0",
+  "description": "AI-powered code review learning environment for Claude Code",
+  "license": "MIT",
+  "author": "jsyang-dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jsyang-dev/code-quest.git"
+  },
+  "homepage": "https://github.com/jsyang-dev/code-quest#readme",
+  "keywords": [
+    "claude-code",
+    "plugin",
+    "learning",
+    "code-review",
+    "education"
+  ],
+  "files": [
+    "skills",
+    ".claude-plugin",
+    "README.md",
+    "LICENSE"
+  ]
+}

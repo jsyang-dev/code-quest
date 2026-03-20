@@ -1,0 +1,29 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "code-quest",
+  "description": "Transform any GitHub repo into an AI-mentored learning environment with progressive issues and automated code review",
+  "owner": {
+    "name": "jsyang-dev"
+  },
+  "plugins": [
+    {
+      "name": "code-quest",
+      "description": "Set up a GitHub repo as a structured learning environment with AI-powered code review on every PR. Decomposes learning tasks into progressive GitHub Issues and installs a GitHub Actions workflow for automatic mentorship-quality AI review.",
+      "version": "1.0.0",
+      "author": {
+        "name": "jsyang-dev"
+      },
+      "source": "./",
+      "category": "education",
+      "homepage": "https://github.com/jsyang-dev/code-quest",
+      "tags": [
+        "learning",
+        "code-review",
+        "education",
+        "github-actions",
+        "ai-mentor"
+      ]
+    }
+  ],
+  "version": "1.0.0"
+}

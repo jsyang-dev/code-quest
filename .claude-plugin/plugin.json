@@ -1,0 +1,20 @@
+{
+  "name": "code-quest",
+  "version": "1.0.0",
+  "description": "AI-powered code review learning environment - transform any GitHub repo into a structured learning journey",
+  "author": {
+    "name": "jsyang-dev"
+  },
+  "repository": "https://github.com/jsyang-dev/code-quest",
+  "homepage": "https://github.com/jsyang-dev/code-quest",
+  "license": "MIT",
+  "keywords": [
+    "claude-code",
+    "plugin",
+    "learning",
+    "code-review",
+    "education",
+    "github-actions"
+  ],
+  "skills": "./skills/"
+}
