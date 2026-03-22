@@ -99,7 +99,26 @@ Store the decomposed features list for use in Steps 3 and 4.
 
 ---
 
-## Step 3: Generate Repository Files
+## Step 3: Configure Repository & Generate Files
+
+### 3-0. Configure GitHub Actions Permissions
+
+Before creating files, enable GitHub Actions to approve pull requests. This is required for the AI review workflow to function correctly.
+
+```bash
+gh api repos/{owner}/{repo}/actions/permissions/workflow \
+  --method PUT \
+  -f default_workflow_permissions=write \
+  -F can_approve_pull_request_reviews=true
+```
+
+If this call fails (e.g., insufficient permissions), warn the user:
+> ⚠️ GitHub Actions 권한 자동 설정에 실패했습니다. 아래 경로에서 직접 설정해주세요:
+> **Settings → Actions → General → Workflow permissions**
+> - "Read and write permissions" 선택
+> - "Allow GitHub Actions to create and approve pull requests" 체크
+
+Then continue with the remaining steps regardless.
 
 Create four files in the target repo using `gh api` or GitHub MCP `create_or_update_file`. Use the base branch (usually `main` or `master` — check with `gh repo view <REPO_URL> --json defaultBranchRef`).
 
